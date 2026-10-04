@@ -90,13 +90,13 @@ def aq_markup(_, chat_id):
     buttons = [
         [
             InlineKeyboardButton(
-                text="𝐉꯭ᴏ꯭ɪ꯭ɴ ꯭༭꯭ 𝐍꯭ᴏ꯭ᴡ",
-                url="https://t.me/annu_updates",
+                text="𝐉꯭ᴏ꯭ɪ꯭ɴ ꯭𝐍꯭ᴏ꯭ᴡ",
+                url="https://t.me/kirti_bots",
                 style=ButtonStyle.PRIMARY,
             ),
             InlineKeyboardButton(
-                text="𝐆꯭ʀ꯭ᴏ꯭ᴜ꯭ᴘ ꯭༭꯭ 𝐂꯭ʜ꯭ᴀ꯭ᴛ",
-                url="https://t.me/annu_support",
+                text="𝐆꯭ʀ꯭ᴏ꯭ᴜ꯭ᴘ 𝐂꯭ʜ꯭ᴀ꯭ᴛ",
+                url="https://t.me/kirti_bots_support",
                 style=ButtonStyle.SUCCESS,
             ),
         ],
