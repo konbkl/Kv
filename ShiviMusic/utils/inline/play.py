@@ -125,16 +125,7 @@ def admin_buttons(chat_id):
 
 
 def stream_markup_timer(_, chat_id, played, dur):
-    bar = progress_bar(played, dur)
-
     return [
-        [
-            InlineKeyboardButton(
-                f"𝐏꯭ʟ꯭ᴀ꯭ʏ꯭ɪ꯭ɴ꯭ɢ ꯭༭꯭ {played} {bar} {dur}",
-                callback_data="GetTimer",
-                style=random.choice(styles),
-            )
-        ],
         *admin_buttons(chat_id),
         [
             InlineKeyboardButton(
