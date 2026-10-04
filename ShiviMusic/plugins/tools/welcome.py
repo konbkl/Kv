@@ -120,7 +120,7 @@ async def disable_welcome(chat_id: int):
 
 def circle(
     pfp: Image.Image,
-    size: int = 500,
+    size: int,
 ) -> Image.Image:
 
     pfp = pfp.convert("RGBA")
@@ -159,7 +159,7 @@ def circle(
 
 
 # ===========================================================
-# Welcome Image
+# CREATE WELCOME IMAGE
 # ===========================================================
 
 async def welcomepic(
@@ -180,26 +180,26 @@ async def welcomepic(
         )
 
         # ---------------------------------------------------
-        # Check Background
+        # Check background
         # ---------------------------------------------------
 
         if not os.path.exists(
             background_path
         ):
             LOGGER.error(
-                "ShiviMusic/assets/wel2.png not found."
+                "wel2.png not found."
             )
             return None
 
         # ---------------------------------------------------
-        # Check Font
+        # Check font
         # ---------------------------------------------------
 
         if not os.path.exists(
             font_path
         ):
             LOGGER.error(
-                "ShiviMusic/assets/font2.ttf not found."
+                "font2.ttf not found."
             )
             return None
 
@@ -229,9 +229,17 @@ async def welcomepic(
 
             try:
 
-                # Profile size
+                # ------------------------------------------------
+                # GOLDEN CIRCLE KE ANDAR PROFILE
+                #
+                # Original image approximately:
+                # x = 245
+                # y = 198
+                # size = 340
+                # ------------------------------------------------
+
                 profile_size = int(
-                    min(width, height) * 0.60
+                    height * 0.415
                 )
 
                 profile = Image.open(
@@ -243,16 +251,12 @@ async def welcomepic(
                     profile_size,
                 )
 
-                # ------------------------------------------------
-                # Position for LEFT GOLD CIRCLE
-                # ------------------------------------------------
-
                 profile_x = int(
-                    width * 0.145
+                    width * 0.160
                 )
 
                 profile_y = int(
-                    height * 0.205
+                    height * 0.245
                 )
 
                 background.alpha_composite(
@@ -278,12 +282,12 @@ async def welcomepic(
         )
 
         # ---------------------------------------------------
-        # Information Font
+        # Font
         # ---------------------------------------------------
 
         info_font_size = max(
             35,
-            int(width * 0.032),
+            int(width * 0.0305),
         )
 
         info_font = ImageFont.truetype(
@@ -295,11 +299,11 @@ async def welcomepic(
         # USER ID
         # ===================================================
         #
-        # This is placed AFTER:
+        # Background already contains:
         #
         # User id :
         #
-        # No extra ID is printed anywhere else.
+        # We only print the value here.
         # ===================================================
 
         user_id_text = str(
@@ -311,7 +315,7 @@ async def welcomepic(
         )
 
         user_id_y = int(
-            height * 0.758
+            height * 0.775
         )
 
         draw.text(
@@ -339,7 +343,7 @@ async def welcomepic(
         else:
 
             username_text = (
-                "No Username"
+                "Not Set"
             )
 
         username_x = int(
@@ -347,7 +351,7 @@ async def welcomepic(
         )
 
         username_y = int(
-            height * 0.835
+            height * 0.855
         )
 
         draw.text(
@@ -390,7 +394,7 @@ async def welcomepic(
 
 
 # ===========================================================
-# Admin Check
+# ADMIN CHECK
 # ===========================================================
 
 async def is_admin(
@@ -416,7 +420,7 @@ async def is_admin(
 
 
 # ===========================================================
-# /welcome Command
+# /welcome COMMAND
 # ===========================================================
 
 @app.on_message(
@@ -433,10 +437,6 @@ async def welcome_command(
         if not message.from_user:
             return
 
-        # ---------------------------------------------------
-        # Admin Check
-        # ---------------------------------------------------
-
         if not await is_admin(
             message.chat.id,
             message.from_user.id,
@@ -445,10 +445,6 @@ async def welcome_command(
             return await message.reply_text(
                 "❌ **Only group admins can use this command.**"
             )
-
-        # ---------------------------------------------------
-        # Status
-        # ---------------------------------------------------
 
         status = await get_welcome(
             message.chat.id
@@ -459,10 +455,6 @@ async def welcome_command(
             if status
             else "🔴 **Disabled**"
         )
-
-        # ---------------------------------------------------
-        # Keyboard
-        # ---------------------------------------------------
 
         keyboard = InlineKeyboardMarkup(
             [
@@ -498,7 +490,7 @@ async def welcome_command(
 
 
 # ===========================================================
-# Welcome Callback
+# WELCOME CALLBACK
 # ===========================================================
 
 @app.on_callback_query(
@@ -513,17 +505,12 @@ async def welcome_callback(
 
     try:
 
+        callback_data = query.data
+
         # ---------------------------------------------------
         # IMPORTANT:
-        # Group IDs are negative:
-        #
-        # -1001234567890
-        #
-        # Therefore DON'T use split("_")[2].
-        # Use rsplit() instead.
+        # Negative group IDs are handled correctly.
         # ---------------------------------------------------
-
-        callback_data = query.data
 
         if callback_data.startswith(
             "wlc_on_"
@@ -533,7 +520,7 @@ async def welcome_callback(
 
             chat_id = int(
                 callback_data[
-                    len("wlc_on_") :
+                    len("wlc_on_"):
                 ]
             )
 
@@ -545,7 +532,7 @@ async def welcome_callback(
 
             chat_id = int(
                 callback_data[
-                    len("wlc_off_") :
+                    len("wlc_off_"):
                 ]
             )
 
@@ -557,7 +544,7 @@ async def welcome_callback(
             )
 
         # ---------------------------------------------------
-        # Admin Check
+        # Admin check
         # ---------------------------------------------------
 
         if not await is_admin(
@@ -599,10 +586,6 @@ async def welcome_callback(
                 "🔴 **Welcome system disabled!**\n\n"
                 "New members will no longer receive welcome messages."
             )
-
-        # ---------------------------------------------------
-        # Keyboard
-        # ---------------------------------------------------
 
         keyboard = InlineKeyboardMarkup(
             [
@@ -655,7 +638,7 @@ async def welcome_callback(
 
 
 # ===========================================================
-# Delete Welcome After 2 Minutes
+# DELETE WELCOME AFTER 2 MINUTES
 # ===========================================================
 
 async def delete_welcome(
@@ -666,17 +649,9 @@ async def delete_welcome(
 
     try:
 
-        # ---------------------------------------------------
-        # 2 MINUTES
-        # ---------------------------------------------------
-
         await asyncio.sleep(
             120
         )
-
-        # ---------------------------------------------------
-        # Delete Telegram Message
-        # ---------------------------------------------------
 
         try:
 
@@ -696,7 +671,7 @@ async def delete_welcome(
             )
 
         # ---------------------------------------------------
-        # Delete Generated Image
+        # Delete generated image
         # ---------------------------------------------------
 
         if image_path:
@@ -706,6 +681,7 @@ async def delete_welcome(
                 if os.path.exists(
                     image_path
                 ):
+
                     os.remove(
                         image_path
                     )
@@ -714,7 +690,7 @@ async def delete_welcome(
                 pass
 
         # ---------------------------------------------------
-        # Remove Temporary Message
+        # Remove temp message
         # ---------------------------------------------------
 
         try:
@@ -725,10 +701,7 @@ async def delete_welcome(
                 )
             )
 
-            if (
-                current_message
-                == message_id
-            ):
+            if current_message == message_id:
 
                 temp.MELCOW.pop(
                     chat_id,
@@ -746,7 +719,7 @@ async def delete_welcome(
 
 
 # ===========================================================
-# New Member Handler
+# NEW MEMBER HANDLER
 # ===========================================================
 
 @app.on_chat_member_updated(
@@ -761,7 +734,7 @@ async def welcome_new_member(
     try:
 
         # ===================================================
-        # GET NEW / OLD MEMBER
+        # NEW / OLD MEMBER
         # ===================================================
 
         new_member = (
@@ -771,10 +744,6 @@ async def welcome_new_member(
         old_member = (
             update.old_chat_member
         )
-
-        # ---------------------------------------------------
-        # New member missing
-        # ---------------------------------------------------
 
         if new_member is None:
             return
@@ -789,7 +758,7 @@ async def welcome_new_member(
             return
 
         # ---------------------------------------------------
-        # Ignore Bots
+        # Ignore bots
         # ---------------------------------------------------
 
         if user.is_bot:
@@ -805,10 +774,8 @@ async def welcome_new_member(
 
         # ===================================================
         # OLD STATUS
-        # ===================================================
         #
-        # IMPORTANT FIX:
-        #
+        # FIX:
         # old_chat_member can be None.
         # ===================================================
 
@@ -825,7 +792,7 @@ async def welcome_new_member(
             )
 
         # ===================================================
-        # CHECK NEW MEMBER
+        # VALID NEW MEMBER
         # ===================================================
 
         if new_status not in (
@@ -836,7 +803,7 @@ async def welcome_new_member(
             return
 
         # ===================================================
-        # CHECK OLD MEMBER
+        # VALID OLD MEMBER
         # ===================================================
 
         if old_status not in (
@@ -858,7 +825,7 @@ async def welcome_new_member(
         chat_id = chat.id
 
         # ===================================================
-        # CHECK WELCOME ENABLED
+        # CHECK WELCOME
         # ===================================================
 
         if not await get_welcome(
@@ -906,9 +873,7 @@ async def welcome_new_member(
 
             group_id = chat_id
 
-            member_count = (
-                "Unknown"
-            )
+            member_count = "Unknown"
 
         # ===================================================
         # DELETE PREVIOUS WELCOME
@@ -955,7 +920,7 @@ async def welcome_new_member(
         username_text = (
             f"@{username}"
             if username
-            else "ɴᴏ ᴜsᴇʀɴᴀᴍᴇ"
+            else "Not Set"
         )
 
         # ===================================================
@@ -1030,7 +995,7 @@ async def welcome_new_member(
                 ],
                 [
                     InlineKeyboardButton(
-                        "➕ ᴋɪᴅɴᴀᴘ ᴍᴇ",
+                        "➕ ᴀᴅᴅ ᴍᴇ ɪɴ ʏᴏᴜʀ ɢʀᴏᴜᴘ",
                         url=add_me_url,
                     )
                 ],
@@ -1087,10 +1052,6 @@ async def welcome_new_member(
 
         try:
 
-            # ------------------------------------------------
-            # Send Image
-            # ------------------------------------------------
-
             if (
                 welcome_image
                 and os.path.exists(
@@ -1107,10 +1068,6 @@ async def welcome_new_member(
                     )
                 )
 
-            # ------------------------------------------------
-            # Send Text if image unavailable
-            # ------------------------------------------------
-
             else:
 
                 welcome_message = (
@@ -1126,10 +1083,6 @@ async def welcome_new_member(
             LOGGER.warning(
                 f"Welcome image send failed: {e}"
             )
-
-            # ------------------------------------------------
-            # Final Text Fallback
-            # ------------------------------------------------
 
             try:
 
