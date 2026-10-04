@@ -1,10 +1,10 @@
 # ======================================================
 # ©️ 2025-26 All Rights Reserved by Kirti 😎
-
+#
 # 🧑‍💻 Developer : t.me/lll_APNA_BADNAM_BABY_lll
 # 🔗 Source link : https://github.com/Badnam019
 # 📢 Telegram channel : t.me/lll_APNA_BADNAM_BABY_lll
-# =======================================================
+# ======================================================
 
 from typing import Union
 from ShiviMusic import app
@@ -24,39 +24,44 @@ def queue_markup(
     not_dur = [
         [
             InlineKeyboardButton(
-                text=_["QU_B_1"],
+                text="𝐐꯭ᴜ꯭ᴇ꯭ᴜ꯭ᴇ ꯭༭꯭ 𝐋꯭ɪ꯭s꯭ᴛ",
                 callback_data=f"GetQueued {CPLAY}|{videoid}",
                 style=ButtonStyle.PRIMARY,
             ),
             InlineKeyboardButton(
-                text=_["CLOSE_BUTTON"],
+                text="𝐂꯭ʟ꯭ᴏ꯭s꯭ᴇ",
                 callback_data="close",
                 style=ButtonStyle.DANGER,
             ),
         ]
     ]
+
     dur = [
         [
             InlineKeyboardButton(
-                text=_["QU_B_2"].format(played, dur),
+                text=f"𝐓꯭ɪ꯭ᴍ꯭ᴇ ꯭༭꯭ {played} / {dur}",
                 callback_data="GetTimer",
                 style=ButtonStyle.SUCCESS,
             )
         ],
         [
             InlineKeyboardButton(
-                text=_["QU_B_1"],
+                text="𝐐꯭ᴜ꯭ᴇ꯭ᴜ꯭ᴇ ꯭༭꯭ 𝐋꯭ɪ꯭s꯭ᴛ",
                 callback_data=f"GetQueued {CPLAY}|{videoid}",
                 style=ButtonStyle.PRIMARY,
             ),
             InlineKeyboardButton(
-                text=_["CLOSE_BUTTON"],
+                text="𝐂꯭ʟ꯭ᴏ꯭s꯭ᴇ",
                 callback_data="close",
                 style=ButtonStyle.DANGER,
             ),
         ],
     ]
-    upl = InlineKeyboardMarkup(not_dur if DURATION == "Unknown" else dur)
+
+    upl = InlineKeyboardMarkup(
+        not_dur if DURATION == "Unknown" else dur
+    )
+
     return upl
 
 
@@ -65,18 +70,19 @@ def queue_back_markup(_, CPLAY):
         [
             [
                 InlineKeyboardButton(
-                    text=_["BACK_BUTTON"],
+                    text="𝐁꯭ᴀ꯭ᴄ꯭ᴋ",
                     callback_data=f"queue_back_timer {CPLAY}",
                     style=ButtonStyle.PRIMARY,
                 ),
                 InlineKeyboardButton(
-                    text=_["CLOSE_BUTTON"],
+                    text="𝐂꯭ʟ꯭ᴏ꯭s꯭ᴇ",
                     callback_data="close",
                     style=ButtonStyle.DANGER,
                 ),
             ]
         ]
     )
+
     return upl
 
 
@@ -84,30 +90,32 @@ def aq_markup(_, chat_id):
     buttons = [
         [
             InlineKeyboardButton(
-                text="ᴊᴏɪɴ ɴᴏᴡ",
-                url=f"https://t.me/annu_updates",
+                text="𝐉꯭ᴏ꯭ɪ꯭ɴ ꯭༭꯭ 𝐍꯭ᴏ꯭ᴡ",
+                url="https://t.me/annu_updates",
                 style=ButtonStyle.PRIMARY,
             ),
             InlineKeyboardButton(
-                text="ɢʀᴏᴜᴘ ᴄʜᴀᴛ",
+                text="𝐆꯭ʀ꯭ᴏ꯭ᴜ꯭ᴘ ꯭༭꯭ 𝐂꯭ʜ꯭ᴀ꯭ᴛ",
                 url="https://t.me/annu_support",
                 style=ButtonStyle.SUCCESS,
             ),
         ],
         [
             InlineKeyboardButton(
-                text="ᴄʟᴏsᴇ",
+                text="𝐂꯭ʟ꯭ᴏ꯭s꯭ᴇ",
                 callback_data="close",
                 style=ButtonStyle.DANGER,
             )
         ],
     ]
+
     return buttons
+
 
 # ======================================================
 # ©️ 2025-26 All Rights Reserved by Kirti 😎
-
+#
 # 🧑‍💻 Developer : t.me/lll_APNA_BADNAM_BABY_lll
 # 🔗 Source link : https://github.com/Badnam019
 # 📢 Telegram channel : t.me/lll_APNA_BADNAM_BABY_lll
-# =======================================================
+# ======================================================
