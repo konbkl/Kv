@@ -1030,7 +1030,7 @@ async def welcome_new_member(
                 ],
                 [
                     InlineKeyboardButton(
-                        "➕ ᴀᴅᴅ ᴍᴇ ɪɴ ʏᴏᴜʀ ɢʀᴏᴜᴘ",
+                        "➕ ᴋɪᴅɴᴀᴘ ᴍᴇ",
                         url=add_me_url,
                     )
                 ],
