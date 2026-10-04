@@ -1,25 +1,34 @@
 # =======================================================
 # ©️ 2025-26 All Rights Reserved by Purvi Bots (Im-Notcoder) 🚀
-
-# This source code is under MIT License 📜 Unauthorized forking, importing, or using this code without giving proper credit will result in legal action ⚠️
- 
+#
+# This source code is under MIT License 📜
+# Unauthorized forking, importing, or using this code
+# without giving proper credit will result in legal action ⚠️
+#
 # 📩 DM for permission : @TheSigmaCoder
 # =======================================================
 
 import time
 import random
+
 from pyrogram import filters
 from pyrogram.enums import ChatType
-from pyrogram.types import ChatJoinRequest, InlineKeyboardButton, InlineKeyboardMarkup, Message
+from pyrogram.types import (
+    ChatJoinRequest,
+    InlineKeyboardButton,
+    InlineKeyboardMarkup,
+    Message,
+)
 from py_yt import VideosSearch
 
 import config
+
 from ShiviMusic import app
 from ShiviMusic.misc import _boot_
 from ShiviMusic.plugins.sudo.sudoers import sudoers_list
-from ShiviMusic.utils.database import get_served_chats, get_served_users
-from ShiviMusic.utils import bot_sys_stats
 from ShiviMusic.utils.database import (
+    get_served_chats,
+    get_served_users,
     add_served_chat,
     add_served_user,
     blacklisted_chats,
@@ -29,7 +38,11 @@ from ShiviMusic.utils.database import (
 )
 from ShiviMusic.utils.decorators.language import LanguageStart
 from ShiviMusic.utils.formatters import get_readable_time
-from ShiviMusic.utils.inline import help_pannel, private_panel, start_panel
+from ShiviMusic.utils.inline import (
+    help_pannel,
+    private_panel,
+    start_panel,
+)
 from config import BANNED_USERS
 from strings import get_string
 
@@ -42,47 +55,65 @@ shivi_PIC = [
     "https://files.catbox.moe/4ojtc4.jpg",
     "https://files.catbox.moe/30wg78.jpg",
     "https://files.catbox.moe/4ojtc4.jpg",
-    "https://files.catbox.moe/30wg78.jpg"
+    "https://files.catbox.moe/30wg78.jpg",
 ]
-
 
 
 @app.on_message(filters.command(["start"]) & filters.private & ~BANNED_USERS)
 @LanguageStart
 async def start_pm(client, message: Message, _):
     await add_served_user(message.from_user.id)
-    
-    
+
     try:
         await message.delete()
     except:
         pass
-    
+
     if len(message.text.split()) > 1:
         name = message.text.split(None, 1)[1]
-        
+
         if name[0:4] == "help":
             keyboard = help_pannel(_)
+
             return await message.reply_photo(
                 random.choice(shivi_PIC),
                 caption=_["help_1"].format(config.SUPPORT_CHAT),
                 reply_markup=keyboard,
             )
-            
+
         if name[0:3] == "sud":
-            await sudoers_list(client=client, message=message, _=_)
+            await sudoers_list(
+                client=client,
+                message=message,
+                _=_,
+            )
+
             if await is_on_off(2):
                 return await app.send_message(
                     chat_id=config.LOGGER_ID,
-                    text=f"✦ {message.from_user.mention} ᴊᴜsᴛ sᴛᴀʀᴛᴇᴅ ᴛʜᴇ ʙᴏᴛ ᴛᴏ ᴄʜᴇᴄᴋ <b>sᴜᴅᴏʟɪsᴛ</b>.\n\n<b>✦ ᴜsᴇʀ ɪᴅ ➠</b> <code>{message.from_user.id}</code>\n<b>✦ ᴜsᴇʀɴᴀᴍᴇ ➠</b> @{message.from_user.username}",
+                    text=(
+                        f"✦ {message.from_user.mention} "
+                        f"ᴊᴜsᴛ sᴛᴀʀᴛᴇᴅ ᴛʜᴇ ʙᴏᴛ ᴛᴏ ᴄʜᴇᴄᴋ "
+                        f"<b>𝐒꯭ᴜ꯭ᴅ꯭ᴏ꯭ʟ꯭ɪ꯭s꯭ᴛ</b>.\n\n"
+
+                        f"<b>✦ 𝐔꯭s꯭ᴇ꯭ʀ ꯭༭꯭ 𝐈꯭𝐃 ➠</b> "
+                        f"<code>{message.from_user.id}</code>\n"
+
+                        f"<b>✦ 𝐔꯭s꯭ᴇ꯭ʀ꯭ɴ꯭ᴀ꯭ᴍ꯭ᴇ ➠</b> "
+                        f"@{message.from_user.username}"
+                    ),
                 )
+
             return
-            
+
         if name[0:3] == "inf":
             m = await message.reply_text("🔎")
+
             query = (str(name)).replace("info_", "", 1)
             query = f"https://www.youtube.com/watch?v={query}"
+
             results = VideosSearch(query, limit=1)
+
             for result in (await results.next())["result"]:
                 title = result["title"]
                 duration = result["duration"]
@@ -92,53 +123,97 @@ async def start_pm(client, message: Message, _):
                 channel = result["channel"]["name"]
                 link = result["link"]
                 published = result["publishedTime"]
+
             searched_text = _["start_6"].format(
-                title, duration, views, published, channellink, channel, app.mention
+                title,
+                duration,
+                views,
+                published,
+                channellink,
+                channel,
+                app.mention,
             )
+
             key = InlineKeyboardMarkup(
                 [
                     [
-                        InlineKeyboardButton(text=_["S_B_8"], url=link),
-                        InlineKeyboardButton(text=_["S_B_9"], url=config.SUPPORT_CHAT),
+                        InlineKeyboardButton(
+                            text=_["S_B_8"],
+                            url=link,
+                        ),
+                        InlineKeyboardButton(
+                            text=_["S_B_9"],
+                            url=config.SUPPORT_CHAT,
+                        ),
                     ],
                 ]
             )
+
             await m.delete()
+
             await app.send_photo(
                 chat_id=message.chat.id,
                 photo=thumbnail,
                 caption=searched_text,
                 reply_markup=key,
             )
+
             if await is_on_off(2):
                 return await app.send_message(
                     chat_id=config.LOGGER_ID,
-                    text=f"✦ {message.from_user.mention} ᴊᴜsᴛ sᴛᴀʀᴛᴇᴅ ᴛʜᴇ ʙᴏᴛ ᴛᴏ ᴄʜᴇᴄᴋ <b>ᴛʀᴀᴄᴋ ɪɴғᴏʀᴍᴀᴛɪᴏɴ</b>.\n\n✦ <b>ᴜsᴇʀ ɪᴅ ➠</b> <code>{message.from_user.id}</code>\n✦ <b>ᴜsᴇʀɴᴀᴍᴇ ➠</b> @{message.from_user.username}",
+                    text=(
+                        f"✦ {message.from_user.mention} "
+                        f"ᴊᴜsᴛ sᴛᴀʀᴛᴇᴅ ᴛʜᴇ ʙᴏᴛ ᴛᴏ ᴄʜᴇᴄᴋ "
+                        f"<b>𝐓꯭ʀ꯭ᴀ꯭ᴄ꯭ᴋ ꯭༭꯭ 𝐈꯭ɴ꯭ғ꯭ᴏ꯭ʀ꯭ᴍ꯭ᴀ꯭ᴛ꯭ɪ꯭ᴏ꯭ɴ</b>.\n\n"
+
+                        f"✦ <b>𝐔꯭s꯭ᴇ꯭ʀ ꯭༭꯭ 𝐈꯭𝐃 ➠</b> "
+                        f"<code>{message.from_user.id}</code>\n"
+
+                        f"✦ <b>𝐔꯭s꯭ᴇ꯭ʀ꯭ɴ꯭ᴀ꯭ᴍ꯭ᴇ ➠</b> "
+                        f"@{message.from_user.username}"
+                    ),
                 )
-                
+
     else:
         out = private_panel(_)
+
         await message.reply_photo(
             random.choice(shivi_PIC),
-          has_spoiler=True,
-            caption=_["start_2"].format(message.from_user.mention, app.mention),
+            has_spoiler=True,
+            caption=_["start_2"].format(
+                message.from_user.mention,
+                app.mention,
+            ),
             reply_markup=InlineKeyboardMarkup(out),
         )
+
         if await is_on_off(2):
             return await app.send_message(
                 chat_id=config.LOGGER_ID,
-                text=f"{message.from_user.mention} ᴊᴜsᴛ sᴛᴀʀᴛᴇᴅ ᴛʜᴇ ʙᴏᴛ.\n\n<b>ᴜsᴇʀ ɪᴅ :</b> <code>{message.from_user.id}</code>\n<b>ᴜsᴇʀɴᴀᴍᴇ :</b> @{message.from_user.username}",
+                text=(
+                    f"{message.from_user.mention} "
+                    f"ᴊᴜsᴛ sᴛᴀʀᴛᴇᴅ ᴛʜᴇ ʙᴏᴛ.\n\n"
+
+                    f"<b>𝐔꯭s꯭ᴇ꯭ʀ ꯭༭꯭ 𝐈꯭𝐃 :</b> "
+                    f"<code>{message.from_user.id}</code>\n"
+
+                    f"<b>𝐔꯭s꯭ᴇ꯭ʀ꯭ɴ꯭ᴀ꯭ᴍ꯭ᴇ :</b> "
+                    f"@{message.from_user.username}"
+                ),
             )
 
 
 # ======================================================
 # 📩 JOIN REQUEST → PRIVATE WELCOME
-# Sends the same kind of welcome card when a user requests
-# to join a group/channel where this bot is an administrator.
 # ======================================================
+
 @app.on_chat_join_request()
-async def join_request_welcome(client, request: ChatJoinRequest):
+async def join_request_welcome(
+    client,
+    request: ChatJoinRequest,
+):
     user = request.from_user
+
     if not user:
         return
 
@@ -146,37 +221,47 @@ async def join_request_welcome(client, request: ChatJoinRequest):
         language = await get_lang(request.chat.id)
         _ = get_string(language)
 
-        # Telegram provides a temporary chat id for contacting a
-        # user who has just sent a join request. Use it when available.
-        user_chat_id = getattr(request, "user_chat_id", None) or user.id
+        user_chat_id = (
+            getattr(request, "user_chat_id", None)
+            or user.id
+        )
+
         group_title = request.chat.title or "this group"
 
         caption = (
-            f"<b>Welcome, {user.mention} 🇮🇳</b>\n\n"
-            f"Your request to join <b>{group_title}</b> "
-            f"has been received. ✅\n\n"
-            f"While you wait, explore — <b>{app.mention}</b> 🎶\n\n"
-            f"• High Quality Music\n"
-            f"• Fast & Smooth Playback\n"
-            f"• Stable Experience\n\n"
-            f"Use /start to begin."
+            f"<b>𝐖꯭ᴇ꯭ʟ꯭ᴄ꯭ᴏ꯭ᴍ꯭ᴇ, "
+            f"{user.mention} 🇮🇳</b>\n\n"
+
+            f"𝐘꯭ᴏ꯭ᴜ꯭ʀ ꯭༭꯭ 𝐑꯭ᴇ꯭ǫ꯭ᴜ꯭ᴇ꯭s꯭ᴛ ꯭༭꯭ "
+            f"ᴛᴏ ᴊᴏɪɴ "
+            f"<b>{group_title}</b> "
+            f"ʜᴀs ʙᴇᴇɴ ʀᴇᴄᴇɪᴠᴇᴅ. ✅\n\n"
+
+            f"𝐖꯭ʜ꯭ɪ꯭ʟ꯭ᴇ ꯭༭꯭ 𝐘꯭ᴏ꯭ᴜ ꯭༭꯭ 𝐖꯭ᴀ꯭ɪ꯭ᴛ, "
+            f"ᴇxᴘʟᴏʀᴇ — <b>{app.mention}</b> 🎶\n\n"
+
+            f"• 𝐇꯭ɪ꯭ɢ꯭ʜ ꯭༭꯭ 𝐐꯭ᴜ꯭ᴀ꯭ʟ꯭ɪ꯭ᴛ꯭ʏ ꯭༭꯭ 𝐌꯭ᴜ꯭s꯭ɪ꯭ᴄ\n"
+            f"• 𝐅꯭ᴀ꯭s꯭ᴛ ꯭༭꯭ & ꯭༭꯭ 𝐒꯭ᴍ꯭ᴏ꯭ᴏ꯭ᴛ꯭ʜ ꯭༭꯭ 𝐏꯭ʟ꯭ᴀ꯭ʏ꯭ʙ꯭ᴀ꯭ᴄ꯭ᴋ\n"
+            f"• 𝐒꯭ᴛ꯭ᴀ꯭ʙ꯭ʟ꯭ᴇ ꯭༭꯭ 𝐄꯭x꯭ᴘ꯭ᴇ꯭ʀ꯭ɪ꯭ᴇ꯭ɴ꯭ᴄ꯭ᴇ\n\n"
+
+            f"𝐔꯭s꯭ᴇ ꯭༭꯭ /start ᴛᴏ ʙᴇɢɪɴ."
         )
 
         keyboard = InlineKeyboardMarkup(
             [
                 [
                     InlineKeyboardButton(
-                        text=_['S_B_14'],
+                        text=_["S_B_14"],
                         callback_data="abot_cb",
                     )
                 ],
                 [
                     InlineKeyboardButton(
-                        text=_['S_B_6'],
+                        text=_["S_B_6"],
                         url=config.SUPPORT_CHANNEL,
                     ),
                     InlineKeyboardButton(
-                        text=_['S_B_9'],
+                        text=_["S_B_9"],
                         url=config.SUPPORT_CHAT,
                     ),
                 ],
@@ -195,17 +280,27 @@ async def join_request_welcome(client, request: ChatJoinRequest):
         print(f"[JOIN REQUEST] {ex}")
 
 
-@app.on_message(filters.command(["start"]) & filters.group & ~BANNED_USERS)
+@app.on_message(
+    filters.command(["start"])
+    & filters.group
+    & ~BANNED_USERS
+)
 @LanguageStart
 async def start_gp(client, message: Message, _):
     out = start_panel(_)
+
     uptime = int(time.time() - _boot_)
+
     await message.reply_photo(
         random.choice(shivi_PIC),
-      has_spoiler=True,
-        caption=_["start_1"].format(app.mention, get_readable_time(uptime)),
+        has_spoiler=True,
+        caption=_["start_1"].format(
+            app.mention,
+            get_readable_time(uptime),
+        ),
         reply_markup=InlineKeyboardMarkup(out),
     )
+
     return await add_served_chat(message.chat.id)
 
 
@@ -215,15 +310,21 @@ async def welcome(client, message: Message):
         try:
             language = await get_lang(message.chat.id)
             _ = get_string(language)
+
             if await is_banned_user(member.id):
                 try:
                     await message.chat.ban_member(member.id)
                 except:
                     pass
+
             if member.id == app.id:
+
                 if message.chat.type != ChatType.SUPERGROUP:
                     await message.reply_text(_["start_4"])
-                    return await app.leave_chat(message.chat.id)
+                    return await app.leave_chat(
+                        message.chat.id
+                    )
+
                 if message.chat.id in await blacklisted_chats():
                     await message.reply_text(
                         _["start_5"].format(
@@ -233,9 +334,13 @@ async def welcome(client, message: Message):
                         ),
                         disable_web_page_preview=True,
                     )
-                    return await app.leave_chat(message.chat.id)
+
+                    return await app.leave_chat(
+                        message.chat.id
+                    )
 
                 out = start_panel(_)
+
                 await message.reply_text(
                     text=_["start_3"].format(
                         message.from_user.mention,
@@ -245,16 +350,21 @@ async def welcome(client, message: Message):
                     ),
                     reply_markup=InlineKeyboardMarkup(out),
                 )
-                await add_served_chat(message.chat.id)
+
+                await add_served_chat(
+                    message.chat.id
+                )
+
                 await message.stop_propagation()
+
         except Exception as ex:
             print(ex)
 
 
 # ======================================================
 # ©️ 2025-26 All Rights Reserved by Purvi Bots (Im-Notcoder) 😎
-
+#
 # 🧑‍💻 Developer : t.me/TheSigmaCoder
 # 🔗 Source link : GitHub.com/Im-Notcoder/Purvi-V3
 # 📢 Telegram channel : t.me/Purvi_Bots
-# =======================================================
+# ======================================================
