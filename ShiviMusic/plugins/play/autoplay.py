@@ -1,12 +1,5 @@
-
 # ===========================================================
-# ©️ 2025-26 All Rights Reserved by Purvi Bots (Im-Notcoder) 🚀
-#
-# This source code is under MIT License 📜
-# ❌ Unauthorized forking, importing, or using this code
-#    without giving proper credit will result in legal action ⚠️
-#
-# 📩 DM for permission : @TheSigmaCoder
+# 🎵 SHIVI MUSIC - AUTO PLAY SETTINGS
 # ===========================================================
 
 from pyrogram import enums, filters
@@ -18,113 +11,355 @@ from pyrogram.types import (
 )
 
 from ShiviMusic import app
-from ShiviMusic.utils.database import autoplay_off, autoplay_on, is_autoplay_on
+from ShiviMusic.utils.database import (
+    autoplay_off,
+    autoplay_on,
+    is_autoplay_on,
+)
 from config import BANNED_USERS
 
 
-def autoplay_markup(chat_id: int, status: bool):
+# ===========================================================
+# 👑 ADMIN CHECK
+# ===========================================================
+
+async def _is_admin(chat_id: int, user_id: int) -> bool:
+    try:
+        member = await app.get_chat_member(
+            chat_id,
+            user_id,
+        )
+
+        return member.status in (
+            enums.ChatMemberStatus.ADMINISTRATOR,
+            enums.ChatMemberStatus.OWNER,
+        )
+
+    except Exception:
+        return False
+
+
+# ===========================================================
+# 📝 AUTO PLAY PANEL TEXT
+# ===========================================================
+
+def autoplay_text(
+    message: Message,
+    status: bool,
+) -> str:
+
+    chat_id = message.chat.id
+    group_name = message.chat.title or "Unknown"
+
+    status_text = (
+        "🟢 ᴇɴᴀʙʟᴇ"
+        if status
+        else
+        "🔴 ᴅɪsᴀʙʟᴇ"
+    )
+
+    return (
+        "❖ **ᴀᴜᴛᴏ ᴘʟᴀʏ sᴇᴛᴛɪɴɢ ᴘᴀɴᴇʟ**\n\n"
+        f"🌼 **ɪᴅ :** `{chat_id}`\n"
+        f"🍂 **sᴛᴀᴛᴜs :** {status_text}\n"
+        f"🏖 **ɢʀᴏᴜᴘ :** **{group_name}**\n\n"
+        "▣ **ᴛᴀᴘ ᴛᴏ ᴍᴀɴᴀɢᴇ**\n"
+        "**ᴄʜᴀɴɢᴇ ᴀᴜᴛᴏᴘʟᴀʏ sᴇᴛᴛɪɴɢ.**"
+    )
+
+
+# ===========================================================
+# 🔘 AUTO PLAY BUTTONS
+# ===========================================================
+
+def autoplay_markup(
+    chat_id: int,
+    status: bool,
+) -> InlineKeyboardMarkup:
+
     return InlineKeyboardMarkup(
         [
             [
                 InlineKeyboardButton(
-                    text="✅ ᴇɴᴀʙʟᴇᴅ" if status else "ᴇɴᴀʙʟᴇ ✅",
-                    callback_data=f"autoplay_on_{chat_id}",
+                    "🟢 ᴇɴᴀʙʟᴇ",
+                    callback_data=f"autoplay_enable:{chat_id}",
                 ),
                 InlineKeyboardButton(
-                    text="ᴅɪsᴀʙʟᴇ ❌" if status else "❌ ᴅɪsᴀʙʟᴇᴅ",
-                    callback_data=f"autoplay_off_{chat_id}",
+                    "🔴 ᴅɪsᴀʙʟᴇ",
+                    callback_data=f"autoplay_disable:{chat_id}",
                 ),
-            ]
+            ],
+            [
+                InlineKeyboardButton(
+                    "≡ ᴄʟᴏsᴇ ≡",
+                    callback_data=f"autoplay_close:{chat_id}",
+                )
+            ],
         ]
     )
 
 
-def autoplay_text(status: bool) -> str:
-    return (
-        "**🎧 ᴀᴜᴛᴏᴘʟᴀʏ sᴇᴛᴛɪɴɢs**\n\n"
-        f"**ᴄᴜʀʀᴇɴᴛ sᴛᴀᴛᴜs :** {'✅ ᴏɴ' if status else '❌ ᴏꜰꜰ'}\n\n"
-        "**ᴡʜᴇɴ ᴇɴᴀʙʟᴇᴅ**, ᴛʜᴇ ʙᴏᴛ ᴡɪʟʟ ᴀᴜᴛᴏᴍᴀᴛɪᴄᴀʟʟʏ ᴘʟᴀʏ ᴀ ʀᴀɴᴅᴏᴍ ʀᴇʟᴀᴛᴇᴅ sᴏɴɢ ᴏɴᴄᴇ ᴛʜᴇ ǫᴜᴇᴜᴇ ᴇɴᴅs, ɪɴsᴛᴇᴀᴅ ᴏꜰ ʟᴇᴀᴠɪɴɢ ᴛʜᴇ ᴠᴏɪᴄᴇ ᴄʜᴀᴛ.\n"
-        "ɪᴛ ɴᴇᴠᴇʀ ʀᴇᴘᴇᴀᴛs ᴀ sᴏɴɢ ᴀʟʀᴇᴀᴅʏ ᴘʟᴀʏᴇᴅ, ᴀɴᴅ /skip ᴡɪʟʟ sᴋɪᴘ ᴀᴜᴛᴏᴘʟᴀʏ ᴛᴏᴏ.\n\n"
-        "ᴛᴏɢɢʟᴇ ɪᴛ ᴜsɪɴɢ ᴛʜᴇ ʙᴜᴛᴛᴏɴs ʙᴇʟᴏᴡ 👇"
-    )
-
-
-async def _is_admin(chat_id: int, user_id: int) -> bool:
-    try:
-        member = await app.get_chat_member(chat_id, user_id)
-    except Exception:
-        return False
-    return member.status in (
-        enums.ChatMemberStatus.ADMINISTRATOR,
-        enums.ChatMemberStatus.OWNER,
-    )
-
+# ===========================================================
+# 🎵 /AUTOPLAY COMMAND
+# ===========================================================
 
 @app.on_message(
-    filters.command(["autoplay", "aplay"]) & filters.group & ~BANNED_USERS
+    filters.command(["autoplay", "aplay"])
+    & filters.group
+    & ~BANNED_USERS
 )
-async def autoplay_cmd(client, message: Message):
+async def autoplay_cmd(
+    client,
+    message: Message,
+):
+
     chat_id = message.chat.id
 
-    if len(message.command) > 1 and message.from_user:
-        if not await _is_admin(chat_id, message.from_user.id):
+    # =======================================================
+    # /autoplay on
+    # /autoplay off
+    # =======================================================
+
+    if len(message.command) > 1:
+
+        if not message.from_user:
+            return
+
+        # ---------------------------------------------------
+        # ADMIN CHECK
+        # ---------------------------------------------------
+
+        if not await _is_admin(
+            chat_id,
+            message.from_user.id,
+        ):
+
             return await message.reply_text(
-                "❌ **sɪʀꜰ ᴀᴅᴍɪɴs ʜɪ ᴀᴜᴛᴏᴘʟᴀʏ ᴏɴ/ᴏꜰꜰ ᴋᴀʀ sᴀᴋᴛᴇ ʜᴀɪɴ.**"
+                "❌ **sɪʀꜰ ᴀᴅᴍɪɴs ʜɪ "
+                "ᴀᴜᴛᴏᴘʟᴀʏ ᴍᴀɴᴀɢᴇ ᴋᴀʀ sᴀᴋᴛᴇ ʜᴀɪɴ.**"
             )
+
         mode = message.command[1].lower()
+
+        # ---------------------------------------------------
+        # ENABLE
+        # ---------------------------------------------------
+
         if mode in ("on", "enable"):
+
             await autoplay_on(chat_id)
-            return await message.reply_text("✅ **ᴀᴜᴛᴏᴘʟᴀʏ ᴇɴᴀʙʟᴇᴅ ꜰᴏʀ ᴛʜɪs ᴄʜᴀᴛ.**")
+
+            return await message.reply_text(
+                "🟢 **ᴀᴜᴛᴏᴘʟᴀʏ ᴇɴᴀʙʟᴇᴅ "
+                "sᴜᴄᴄᴇssғᴜʟʟʏ.**"
+            )
+
+        # ---------------------------------------------------
+        # DISABLE
+        # ---------------------------------------------------
+
         if mode in ("off", "disable"):
+
             await autoplay_off(chat_id)
-            return await message.reply_text("❌ **ᴀᴜᴛᴏᴘʟᴀʏ ᴅɪsᴀʙʟᴇᴅ ꜰᴏʀ ᴛʜɪs ᴄʜᴀᴛ.**")
+
+            return await message.reply_text(
+                "🔴 **ᴀᴜᴛᴏᴘʟᴀʏ ᴅɪsᴀʙʟᴇᴅ "
+                "sᴜᴄᴄᴇssғᴜʟʟʏ.**"
+            )
+
+        # ---------------------------------------------------
+        # WRONG COMMAND
+        # ---------------------------------------------------
+
         return await message.reply_text(
-            "**ᴜsᴀɢᴇ :**\n`/autoplay on`\n`/autoplay off`"
+            "❖ **ᴜsᴀɢᴇ**\n\n"
+            "➤ `/autoplay` — **ᴏᴘᴇɴ sᴇᴛᴛɪɴɢs**\n"
+            "➤ `/autoplay on` — **ᴇɴᴀʙʟᴇ**\n"
+            "➤ `/autoplay off` — **ᴅɪsᴀʙʟᴇ**"
         )
 
+    # =======================================================
+    # OPEN AUTO PLAY PANEL
+    # =======================================================
+
     status = await is_autoplay_on(chat_id)
+
     await message.reply_text(
-        autoplay_text(status),
-        reply_markup=autoplay_markup(chat_id, status),
+        autoplay_text(
+            message,
+            status,
+        ),
+        reply_markup=autoplay_markup(
+            chat_id,
+            status,
+        ),
     )
 
 
+# ===========================================================
+# 🟢 ENABLE / 🔴 DISABLE CALLBACK
+# ===========================================================
+
 @app.on_callback_query(
-    filters.regex(r"^autoplay_(on|off)_(-?\d+)$") & ~BANNED_USERS
+    filters.regex(
+        r"^autoplay_(enable|disable):(-?\d+)$"
+    )
+    & ~BANNED_USERS
 )
-async def autoplay_toggle_cb(client, query: CallbackQuery):
-    action, chat_id = query.matches[0].group(1), int(query.matches[0].group(2))
+async def autoplay_toggle_callback(
+    client,
+    query: CallbackQuery,
+):
+
+    action = query.matches[0].group(1)
+    chat_id = int(query.matches[0].group(2))
+
+    # =======================================================
+    # MESSAGE CHECK
+    # =======================================================
+
+    if not query.message:
+
+        return await query.answer(
+            "❌ ᴍᴇssᴀɢᴇ ɴᴏᴛ ғᴏᴜɴᴅ.",
+            show_alert=True,
+        )
+
+    # =======================================================
+    # CHAT CHECK
+    # =======================================================
 
     if query.message.chat.id != chat_id:
+
         return await query.answer(
-            "❌ ʏᴇ ʙᴜᴛᴛᴏɴ ɪs ᴄʜᴀᴛ ᴋᴇ ʟɪᴇ ɴᴀʜɪ ʜᴀɪ.", show_alert=True
-        )
-    if not await _is_admin(chat_id, query.from_user.id):
-        return await query.answer(
-            "❌ sɪʀꜰ ᴀᴅᴍɪɴs ʜɪ ʏᴇ ᴛᴏɢɢʟᴇ ᴋᴀʀ sᴀᴋᴛᴇ ʜᴀɪɴ.", show_alert=True
+            "❌ ᴛʜɪs ʙᴜᴛᴛᴏɴ ɪs ɴᴏᴛ ғᴏʀ ᴛʜɪs ᴄʜᴀᴛ.",
+            show_alert=True,
         )
 
-    if action == "on":
+    # =======================================================
+    # ADMIN CHECK
+    # =======================================================
+
+    if not await _is_admin(
+        chat_id,
+        query.from_user.id,
+    ):
+
+        return await query.answer(
+            "❌ ᴏɴʟʏ ᴀᴅᴍɪɴs ᴄᴀɴ "
+            "ᴄʜᴀɴɢᴇ ᴀᴜᴛᴏᴘʟᴀʏ.",
+            show_alert=True,
+        )
+
+    # =======================================================
+    # ENABLE
+    # =======================================================
+
+    if action == "enable":
+
         await autoplay_on(chat_id)
+
         status = True
-        await query.answer("✅ ᴀᴜᴛᴏᴘʟᴀʏ ᴇɴᴀʙʟᴇᴅ")
+
+        await query.answer(
+            "🟢 ᴀᴜᴛᴏᴘʟᴀʏ ᴇɴᴀʙʟᴇᴅ",
+            show_alert=False,
+        )
+
+    # =======================================================
+    # DISABLE
+    # =======================================================
+
     else:
+
         await autoplay_off(chat_id)
+
         status = False
-        await query.answer("❌ ᴀᴜᴛᴏᴘʟᴀʏ ᴅɪsᴀʙʟᴇᴅ")
+
+        await query.answer(
+            "🔴 ᴀᴜᴛᴏᴘʟᴀʏ ᴅɪsᴀʙʟᴇᴅ",
+            show_alert=False,
+        )
+
+    # =======================================================
+    # UPDATE PANEL
+    # =======================================================
 
     try:
+
         await query.message.edit_text(
-            autoplay_text(status),
-            reply_markup=autoplay_markup(chat_id, status),
+            autoplay_text(
+                query.message,
+                status,
+            ),
+            reply_markup=autoplay_markup(
+                chat_id,
+                status,
+            ),
         )
+
     except Exception:
         pass
 
+
 # ===========================================================
-# ©️ 2025-26 All Rights Reserved by Purvi Bots (Im-Notcoder) 😎
-#
-# 🧑‍💻 Developer : t.me/TheSigmaCoder
-# 🔗 Source link : GitHub.com/Im-Notcoder/Shivi-V2
-# 📢 Telegram channel : t.me/Purvi_Bots
+# ❌ CLOSE CALLBACK
+# ===========================================================
+
+@app.on_callback_query(
+    filters.regex(
+        r"^autoplay_close:(-?\d+)$"
+    )
+    & ~BANNED_USERS
+)
+async def autoplay_close_callback(
+    client,
+    query: CallbackQuery,
+):
+
+    chat_id = int(
+        query.matches[0].group(1)
+    )
+
+    # =======================================================
+    # MESSAGE CHECK
+    # =======================================================
+
+    if not query.message:
+        return
+
+    # =======================================================
+    # CHAT CHECK
+    # =======================================================
+
+    if query.message.chat.id != chat_id:
+
+        return await query.answer(
+            "❌ ᴛʜɪs ʙᴜᴛᴛᴏɴ ɪs ɴᴏᴛ ғᴏʀ ᴛʜɪs ᴄʜᴀᴛ.",
+            show_alert=True,
+        )
+
+    # =======================================================
+    # CLOSE PANEL
+    # =======================================================
+
+    try:
+
+        await query.message.delete()
+
+        await query.answer(
+            "≡ ᴘᴀɴᴇʟ ᴄʟᴏsᴇᴅ ≡",
+            show_alert=False,
+        )
+
+    except Exception:
+
+        await query.answer(
+            "❌ ɪ ᴄᴀɴ'ᴛ ᴄʟᴏsᴇ ᴛʜɪs ᴘᴀɴᴇʟ.",
+            show_alert=True,
+        )
+
+
+# ===========================================================
+# ©️ 2025-26 SHIVI MUSIC
 # ===========================================================
