@@ -91,7 +91,7 @@ def autoplay_markup(
             ],
             [
                 InlineKeyboardButton(
-                    "≡ ᴄʟᴏsᴇ ≡",
+                    "⌯ ᴄʟᴏsᴇ ⌯",
                     callback_data=f"autoplay_close:{chat_id}",
                 )
             ],
@@ -348,7 +348,7 @@ async def autoplay_close_callback(
         await query.message.delete()
 
         await query.answer(
-            "≡ ᴘᴀɴᴇʟ ᴄʟᴏsᴇᴅ ≡",
+            "⌯ ᴘᴀɴᴇʟ ᴄʟᴏsᴇᴅ ⌯",
             show_alert=False,
         )
 
