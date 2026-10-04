@@ -15,12 +15,17 @@ from ShiviMusic import app
 # ==========================================================
 
 ADD_ME_PROMO_TEXT = (
-    "❖ <a href=\"https://t.me/{username}\">˹{name}˼ ♪</a> — <b>𝐘ᴏᴜʀ 𝐏ʀᴇᴍɪᴜᴍ 𝐌ᴜsɪᴄ 𝐒ᴛʀᴇᴍᴀʀ 𝐁ᴏᴛ 🍂</b>\n\n"
-    
-    "<blockquote><b>▸ 𝐅ᴀsᴛ • 𝐋ᴀɢ 𝐅ʀᴇᴇ • 𝐍ᴏ 𝐀ᴅs 🍂</b>\n"
-    "<b>▸ 𝐀ᴜᴛᴏ-𝐏ʟᴀʏ • 𝐀ᴜᴅɪᴏ • 𝐕ɪᴅᴇᴏ 🎥</b></blockquote>\n\n"
-    
-    "<b>◼️ 𝐀ᴅᴅ</b> <a href=\"https://t.me/{username}\">˹{name}˼ ♪</a> <b>𝐓ᴏ 𝐘ᴏᴜʀ 𝐆ʀᴏᴜᴘ & 𝐄ɴᴊᴏʏ 𝐇ɪɢʜ 𝐐ᴜᴀʟɪᴛʏ 𝐒ᴏɴɢ ❄️</b>"
+    "❖ <a href=\"https://t.me/{username}\">˹{name}˼ ♪</a> — "
+    "<b>𝐘꯭ᴏ꯭ᴜ꯭ʀ 𝐏꯭ʀ꯭ᴇ꯭ᴍ꯭ɪ꯭ᴜ꯭ᴍ 𝐌꯭ᴜ꯭s꯭ɪ꯭ᴄ 𝐒꯭ᴛ꯭ʀ꯭ᴇ꯭ᴀ꯭ᴍ꯭ᴇ꯭ʀ 𝐁꯭ᴏ꯭ᴛ 🍂</b>\n\n"
+
+    "<blockquote>"
+    "<b>▸ 𝐅꯭ᴀ꯭s꯭ᴛ ꯭༭꯭ • 𝐋꯭ᴀ꯭ɢ ꯭༭꯭ 𝐅꯭ʀ꯭ᴇ꯭ᴇ ꯭༭꯭ • 𝐍꯭ᴏ ꯭༭꯭ 𝐀꯭ᴅ꯭s 🍂</b>\n"
+    "<b>▸ 𝐀꯭ᴜ꯭ᴛ꯭ᴏ-𝐏꯭ʟ꯭ᴀ꯭ʏ ꯭༭꯭ • 𝐀꯭ᴜ꯭ᴅ꯭ɪ꯭ᴏ ꯭༭꯭ • 𝐕꯭ɪ꯭ᴅ꯭ᴇ꯭ᴏ 🎥</b>"
+    "</blockquote>\n\n"
+
+    "<b>◼️ 𝐀꯭ᴅ꯭ᴅ</b> "
+    "<a href=\"https://t.me/{username}\">˹{name}˼ ♪</a> "
+    "<b>𝐓꯭ᴏ 𝐘꯭ᴏ꯭ᴜ꯭ʀ 𝐆꯭ʀ꯭ᴏ꯭ᴜ꯭ᴘ ꯭༭꯭ & 𝐄꯭ɴ꯭ᴊ꯭ᴏ꯭ʏ 𝐇꯭ɪ꯭ɢ꯭ʜ 𝐐꯭ᴜ꯭ᴀ꯭ʟ꯭ɪ꯭ᴛ꯭ʏ 𝐒꯭ᴏ꯭ɴ꯭ɢ ❄️</b>"
 )
 
 
@@ -34,7 +39,7 @@ def _add_me_markup(username: str):
         [
             [
                 InlineKeyboardButton(
-                    text="✙ ʌᴅᴅ ϻє ɪη ʏσυʀ ɢʀσυᴘ ✙",
+                    text="✙ 𝐀꯭ᴅ꯭ᴅ 𝐌꯭ᴇ ꯭༭꯭ 𝐈꯭ɴ 𝐘꯭ᴏ꯭ᴜ꯭ʀ 𝐆꯭ʀ꯭ᴏ꯭ᴜ꯭ᴘ ✙",
                     url=f"https://t.me/{username}?startgroup=true",
                 )
             ]
@@ -61,12 +66,12 @@ async def guest_username_mention(_, message: Message):
     try:
 
         # --------------------------------------------------
-        # GET BOT INFORMATION 
+        # GET BOT INFORMATION
         # --------------------------------------------------
 
         me = await app.get_me()
 
-        # Full bot name 
+        # Full bot name
         name = me.first_name or "Music Bot"
 
         if me.last_name:
@@ -98,8 +103,8 @@ async def guest_username_mention(_, message: Message):
         # --------------------------------------------------
 
         result = InlineQueryResultArticle(
-            title=f"❖ {name} ♪",
-            description=f"@{username} • Add Me In Your Group 🎶",
+            title=f"❖ 𝐌꯭ᴜ꯭s꯭ɪ꯭ᴄ 𝐁꯭ᴏ꯭ᴛ ♪",
+            description=f"@{username} • 𝐀꯭ᴅ꯭ᴅ 𝐌꯭ᴇ ꯭༭꯭ 𝐈꯭ɴ 𝐘꯭ᴏ꯭ᴜ꯭ʀ 𝐆꯭ʀ꯭ᴏ꯭ᴜ꯭ᴘ 🎶",
             thumb_url="https://files.catbox.moe/qv2ob4.jpg",
 
             input_message_content=InputTextMessageContent(
@@ -125,4 +130,3 @@ async def guest_username_mention(_, message: Message):
         print(
             f"Guest Mode Error: {type(e).__name__}: {e}"
         )
-        
