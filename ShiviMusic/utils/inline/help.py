@@ -18,14 +18,14 @@ from ShiviMusic import app
 def help_pannel(_, START: Union[bool, int] = None):
     first = [
         InlineKeyboardButton(
-            text=_["CLOSE_BUTTON"],
+            text="꯭˹ ꯭𝐂꯭ʟ꯭ᴏ꯭s꯭ᴇ ꯭˼",
             callback_data="close",
         )
     ]
 
     second = [
         InlineKeyboardButton(
-            text=_["BACK_BUTTON"],
+            text="꯭⌯ ꯭𝐁꯭ᴀ꯭ᴄ꯭ᴋ ꯭⌯",
             callback_data="settingsback_helper",
         ),
     ]
@@ -78,21 +78,22 @@ def help_pannel(_, START: Union[bool, int] = None):
             ],
             [
                 InlineKeyboardButton(
-                    text="• ᴡᴇʟᴄᴏᴍᴇ •",
+                    text="꯭• ꯭𝐖꯭ᴇ꯭ʟ꯭ᴄ꯭ᴏ꯭ᴍ꯭ᴇ ꯭•",
                     callback_data="help_callback hb10",
                 ),
                 InlineKeyboardButton(
-                    text="• ʟᴏᴄᴋs •",
+                    text="꯭• ꯭𝐋꯭ᴏ꯭ᴄ꯭ᴋ꯭s ꯭•",
                     callback_data="help_callback hb11",
                 ),
                 InlineKeyboardButton(
-                    text="• ɴɪɢʜᴛᴍᴏᴅᴇ •",
+                    text="꯭• ꯭𝐍꯭ɪ꯭ɢ꯭ʜ꯭ᴛ꯭ᴍ꯭ᴏ꯭ᴅ꯭ᴇ ꯭•",
                     callback_data="help_callback hb12",
                 ),
             ],
             mark,
         ]
     )
+
     return upl
 
 
@@ -101,12 +102,13 @@ def help_back_markup(_):
         [
             [
                 InlineKeyboardButton(
-                    text=_["BACK_BUTTON"],
+                    text="꯭⌯ ꯭𝐁꯭ᴀ꯭ᴄ꯭ᴋ ꯭⌯",
                     callback_data="settings_back_helper",
                 ),
             ]
         ]
     )
+
     return upl
 
 
@@ -114,11 +116,12 @@ def private_help_panel(_):
     buttons = [
         [
             InlineKeyboardButton(
-                text=_["S_B_4"],
+                text="꯭˹ ꯭𝐇꯭ᴇ꯭ʟ꯭ᴘ ꯭& ꯭𝐂꯭ᴏ꯭ᴍ꯭ᴍ꯭ᴀ꯭ɴ꯭ᴅ꯭s ꯭˼",
                 url=f"https://t.me/{app.username}?start=help",
             ),
         ],
     ]
+
     return buttons
 
 
