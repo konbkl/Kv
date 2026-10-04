@@ -2,132 +2,104 @@
 # ©️ 2025-26 All Rights Reserved by Purvi Bots (Im-Notcoder) 🚀
 #
 # ShiviMusic Welcome System
+# ZERO DATABASE
+# ZERO WELCOME STATE STORAGE
+#
+# Features:
+# • No MongoDB
+# • No RAM welcome settings
+# • No group/user data storage
+# • Welcome image
+# • Circular profile
+# • User ID + Username
+# • Group ID + Member count
+# • View Member button
+# • Add bot button
+# • Auto delete after 2 minutes
+# • old_chat_member None error fixed
 # ===========================================================
 
 import os
 import asyncio
-from logging import getLogger
 
-from motor.motor_asyncio import AsyncIOMotorClient
-from PIL import Image, ImageDraw, ImageFont, ImageEnhance
+from PIL import Image, ImageDraw, ImageFont
 
 from pyrogram import filters
 from pyrogram.enums import ChatMemberStatus
-from pyrogram.errors import MessageIdInvalid, MessageNotModified
-from pyrogram.types import (
-    InlineKeyboardMarkup,
-    InlineKeyboardButton,
-)
+from pyrogram.errors import RPCError
+from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
-from config import MONGO_DB_URI
-from ShiviMusic import app
-
-
-LOGGER = getLogger(__name__)
+from ShiviMusic import app, logger
 
 
 # ===========================================================
-# MongoDB
-# ===========================================================
-
-mongo = AsyncIOMotorClient(MONGO_DB_URI)
-
-Wel_DB = mongo["ShiviMusic"]
-welcome_collection = Wel_DB["welcome_toggle_system"]
-
-
-# ===========================================================
-# Temporary Welcome Messages
-# ===========================================================
-
-class Temp:
-    MELCOW = {}
-
-
-temp = Temp()
-
-
-# ===========================================================
-# Download Directory
+# SETTINGS
 # ===========================================================
 
 DOWNLOAD_DIR = "downloads"
-os.makedirs(DOWNLOAD_DIR, exist_ok=True)
+
+os.makedirs(
+    DOWNLOAD_DIR,
+    exist_ok=True,
+)
 
 
 # ===========================================================
-# Welcome Database
+# FONT
 # ===========================================================
 
-async def get_welcome(chat_id: int) -> bool:
-    try:
-        data = await welcome_collection.find_one(
-            {"chat_id": chat_id}
-        )
+def get_font(size: int, bold: bool = True):
 
-        return bool(
-            data and data.get("welcome", False)
-        )
+    if bold:
+        font_paths = [
+            "ShiviMusic/assets/font2.ttf",
+            "ShiviMusic/assets/bold.ttf",
+            "ShiviMusic/assets/font.ttf",
+            "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
+        ]
+    else:
+        font_paths = [
+            "ShiviMusic/assets/font.ttf",
+            "ShiviMusic/assets/font2.ttf",
+            "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
+        ]
 
-    except Exception as e:
-        LOGGER.error(
-            f"Welcome DB read error: {e}"
-        )
-        return False
+    for font_path in font_paths:
 
+        if os.path.exists(font_path):
 
-async def enable_welcome(chat_id: int):
-    try:
-        await welcome_collection.update_one(
-            {"chat_id": chat_id},
-            {
-                "$set": {
-                    "chat_id": chat_id,
-                    "welcome": True,
-                }
-            },
-            upsert=True,
-        )
+            try:
+                return ImageFont.truetype(
+                    font_path,
+                    size,
+                )
+            except Exception:
+                pass
 
-    except Exception as e:
-        LOGGER.error(
-            f"Welcome enable error: {e}"
-        )
-
-
-async def disable_welcome(chat_id: int):
-    try:
-        await welcome_collection.update_one(
-            {"chat_id": chat_id},
-            {
-                "$set": {
-                    "chat_id": chat_id,
-                    "welcome": False,
-                }
-            },
-            upsert=True,
-        )
-
-    except Exception as e:
-        LOGGER.error(
-            f"Welcome disable error: {e}"
-        )
+    return ImageFont.load_default()
 
 
 # ===========================================================
-# Circular Profile Photo
+# CIRCLE IMAGE
 # ===========================================================
 
-def circle(
-    pfp: Image.Image,
-    size: int,
-) -> Image.Image:
+def make_circle(image):
 
-    pfp = pfp.convert("RGBA")
+    size = min(
+        image.width,
+        image.height,
+    )
 
-    pfp = pfp.resize(
-        (size, size),
-        Image.Resampling.LANCZOS,
+    left = (image.width - size) // 2
+    top = (image.height - size) // 2
+
+    image = image.crop(
+        (
+            left,
+            top,
+            left + size,
+            top + size,
+        )
     )
 
     mask = Image.new(
@@ -139,7 +111,12 @@ def circle(
     draw = ImageDraw.Draw(mask)
 
     draw.ellipse(
-        (0, 0, size, size),
+        (
+            0,
+            0,
+            size - 1,
+            size - 1,
+        ),
         fill=255,
     )
 
@@ -150,7 +127,7 @@ def circle(
     )
 
     result.paste(
-        pfp,
+        image.convert("RGBA"),
         (0, 0),
         mask,
     )
@@ -162,497 +139,232 @@ def circle(
 # CREATE WELCOME IMAGE
 # ===========================================================
 
-async def welcomepic(
+async def create_welcome_image(
     user_id: int,
-    first_name: str,
     username: str,
-    profile_path: str,
+    profile_path=None,
 ):
 
+    background_path = (
+        "ShiviMusic/assets/wel2.png"
+    )
+
+    if not os.path.exists(
+        background_path
+    ):
+        logger.warning(
+            "wel2.png not found."
+        )
+        return None
+
     try:
-
-        background_path = (
-            "ShiviMusic/assets/wel2.png"
-        )
-
-        font_path = (
-            "ShiviMusic/assets/font2.ttf"
-        )
-
-        # ---------------------------------------------------
-        # Check background
-        # ---------------------------------------------------
-
-        if not os.path.exists(
-            background_path
-        ):
-            LOGGER.error(
-                "wel2.png not found."
-            )
-            return None
-
-        # ---------------------------------------------------
-        # Check font
-        # ---------------------------------------------------
-
-        if not os.path.exists(
-            font_path
-        ):
-            LOGGER.error(
-                "font2.ttf not found."
-            )
-            return None
-
-        # ---------------------------------------------------
-        # Open Background
-        # ---------------------------------------------------
 
         background = Image.open(
             background_path
         ).convert("RGBA")
 
-        background = ImageEnhance.Brightness(
-            background
-        ).enhance(1.03)
-
-        width = background.width
-        height = background.height
-
-        # ===================================================
-        # PROFILE PHOTO
-        # ===================================================
-
-        if (
-            profile_path
-            and os.path.exists(profile_path)
-        ):
-
-            try:
-
-                # ------------------------------------------------
-                # GOLDEN CIRCLE KE ANDAR PROFILE
-                #
-                # Original image approximately:
-                # x = 245
-                # y = 198
-                # size = 340
-                # ------------------------------------------------
-
-                profile_size = int(
-                    height * 0.415
-                )
-
-                profile = Image.open(
-                    profile_path
-                ).convert("RGBA")
-
-                profile = circle(
-                    profile,
-                    profile_size,
-                )
-
-                profile_x = int(
-                    width * 0.160
-                )
-
-                profile_y = int(
-                    height * 0.245
-                )
-
-                background.alpha_composite(
-                    profile,
-                    (
-                        profile_x,
-                        profile_y,
-                    ),
-                )
-
-            except Exception as e:
-
-                LOGGER.warning(
-                    f"Profile image error: {e}"
-                )
-
-        # ===================================================
-        # DRAW TEXT
-        # ===================================================
-
-        draw = ImageDraw.Draw(
-            background
-        )
-
-        # ---------------------------------------------------
-        # Font
-        # ---------------------------------------------------
-
-        info_font_size = max(
-            35,
-            int(width * 0.0305),
-        )
-
-        info_font = ImageFont.truetype(
-            font_path,
-            info_font_size,
-        )
-
-        # ===================================================
-        # USER ID
-        # ===================================================
-        #
-        # Background already contains:
-        #
-        # User id :
-        #
-        # We only print the value here.
-        # ===================================================
-
-        user_id_text = str(
-            user_id
-        )
-
-        user_id_x = int(
-            width * 0.590
-        )
-
-        user_id_y = int(
-            height * 0.775
-        )
-
-        draw.text(
-            (
-                user_id_x,
-                user_id_y,
-            ),
-            user_id_text,
-            font=info_font,
-            fill="white",
-            stroke_width=1,
-            stroke_fill="black",
-        )
-
-        # ===================================================
-        # USERNAME
-        # ===================================================
-
-        if username:
-
-            username_text = (
-                f"@{username}"
-            )
-
-        else:
-
-            username_text = (
-                "Not Set"
-            )
-
-        username_x = int(
-            width * 0.590
-        )
-
-        username_y = int(
-            height * 0.855
-        )
-
-        draw.text(
-            (
-                username_x,
-                username_y,
-            ),
-            username_text,
-            font=info_font,
-            fill="white",
-            stroke_width=1,
-            stroke_fill="black",
-        )
-
-        # ===================================================
-        # SAVE IMAGE
-        # ===================================================
-
-        output_path = os.path.join(
-            DOWNLOAD_DIR,
-            f"welcome_{user_id}.png",
-        )
-
-        background.convert(
-            "RGB"
-        ).save(
-            output_path,
-            quality=95,
-        )
-
-        return output_path
-
     except Exception as e:
 
-        LOGGER.exception(
-            f"Welcome image generation error: {e}"
+        logger.error(
+            f"Welcome background error: {e}"
         )
 
         return None
 
+    width, height = background.size
 
-# ===========================================================
-# ADMIN CHECK
-# ===========================================================
+    # =======================================================
+    # PROFILE
+    # =======================================================
 
-async def is_admin(
-    chat_id: int,
-    user_id: int,
-) -> bool:
-
-    try:
-
-        member = await app.get_chat_member(
-            chat_id,
-            user_id,
-        )
-
-        return member.status in (
-            ChatMemberStatus.OWNER,
-            ChatMemberStatus.ADMINISTRATOR,
-        )
-
-    except Exception:
-
-        return False
-
-
-# ===========================================================
-# /welcome COMMAND
-# ===========================================================
-
-@app.on_message(
-    filters.command("welcome")
-    & filters.group
-)
-async def welcome_command(
-    _,
-    message,
-):
-
-    try:
-
-        if not message.from_user:
-            return
-
-        if not await is_admin(
-            message.chat.id,
-            message.from_user.id,
-        ):
-
-            return await message.reply_text(
-                "❌ **Only group admins can use this command.**"
-            )
-
-        status = await get_welcome(
-            message.chat.id
-        )
-
-        current_status = (
-            "🟢 **Enabled**"
-            if status
-            else "🔴 **Disabled**"
-        )
-
-        keyboard = InlineKeyboardMarkup(
-            [
-                [
-                    InlineKeyboardButton(
-                        "✅ ᴇɴᴀʙʟᴇ",
-                        callback_data=(
-                            f"wlc_on_{message.chat.id}"
-                        ),
-                    ),
-                    InlineKeyboardButton(
-                        "❌ ᴅɪsᴀʙʟᴇ",
-                        callback_data=(
-                            f"wlc_off_{message.chat.id}"
-                        ),
-                    ),
-                ]
-            ]
-        )
-
-        await message.reply_text(
-            f"**❖ ᴡᴇʟᴄᴏᴍᴇ sʏsᴛᴇᴍ ❖**\n\n"
-            f"**➻ sᴛᴀᴛᴜs »** {current_status}\n\n"
-            f"ᴄʜᴏᴏsᴇ ᴀɴ ᴏᴘᴛɪᴏɴ ʙᴇʟᴏᴡ 👇",
-            reply_markup=keyboard,
-        )
-
-    except Exception as e:
-
-        LOGGER.exception(
-            f"/welcome command error: {e}"
-        )
-
-
-# ===========================================================
-# WELCOME CALLBACK
-# ===========================================================
-
-@app.on_callback_query(
-    filters.regex(
-        r"^wlc_(on|off)_"
+    profile_size = int(
+        height * 0.415
     )
-)
-async def welcome_callback(
-    _,
-    query,
-):
 
-    try:
+    profile_x = int(
+        width * 0.160
+    )
 
-        callback_data = query.data
+    profile_y = int(
+        height * 0.245
+    )
 
-        # ---------------------------------------------------
-        # IMPORTANT:
-        # Negative group IDs are handled correctly.
-        # ---------------------------------------------------
-
-        if callback_data.startswith(
-            "wlc_on_"
-        ):
-
-            action = "on"
-
-            chat_id = int(
-                callback_data[
-                    len("wlc_on_"):
-                ]
-            )
-
-        elif callback_data.startswith(
-            "wlc_off_"
-        ):
-
-            action = "off"
-
-            chat_id = int(
-                callback_data[
-                    len("wlc_off_"):
-                ]
-            )
-
-        else:
-
-            return await query.answer(
-                "❌ Invalid request.",
-                show_alert=True,
-            )
-
-        # ---------------------------------------------------
-        # Admin check
-        # ---------------------------------------------------
-
-        if not await is_admin(
-            chat_id,
-            query.from_user.id,
-        ):
-
-            return await query.answer(
-                "❌ Only group admins can change this setting.",
-                show_alert=True,
-            )
-
-        # ---------------------------------------------------
-        # Enable
-        # ---------------------------------------------------
-
-        if action == "on":
-
-            await enable_welcome(
-                chat_id
-            )
-
-            text = (
-                "🟢 **Welcome system enabled!**\n\n"
-                "New members will now receive welcome messages."
-            )
-
-        # ---------------------------------------------------
-        # Disable
-        # ---------------------------------------------------
-
-        else:
-
-            await disable_welcome(
-                chat_id
-            )
-
-            text = (
-                "🔴 **Welcome system disabled!**\n\n"
-                "New members will no longer receive welcome messages."
-            )
-
-        keyboard = InlineKeyboardMarkup(
-            [
-                [
-                    InlineKeyboardButton(
-                        "✅ ᴇɴᴀʙʟᴇ",
-                        callback_data=(
-                            f"wlc_on_{chat_id}"
-                        ),
-                    ),
-                    InlineKeyboardButton(
-                        "❌ ᴅɪsᴀʙʟᴇ",
-                        callback_data=(
-                            f"wlc_off_{chat_id}"
-                        ),
-                    ),
-                ]
-            ]
-        )
+    if (
+        profile_path
+        and os.path.exists(profile_path)
+    ):
 
         try:
 
-            await query.message.edit_text(
-                text,
-                reply_markup=keyboard,
+            profile = Image.open(
+                profile_path
+            ).convert("RGBA")
+
+            profile = make_circle(
+                profile
             )
 
-        except MessageNotModified:
-            pass
+            profile = profile.resize(
+                (
+                    profile_size,
+                    profile_size,
+                ),
+                Image.Resampling.LANCZOS,
+            )
 
-        await query.answer(
-            "Updated successfully! ✅"
+            background.alpha_composite(
+                profile,
+                (
+                    profile_x,
+                    profile_y,
+                ),
+            )
+
+        except Exception as e:
+
+            logger.warning(
+                f"Profile image error: {e}"
+            )
+
+    # =======================================================
+    # TEXT
+    # =======================================================
+
+    draw = ImageDraw.Draw(
+        background
+    )
+
+    font_size = max(
+        24,
+        int(height * 0.060),
+    )
+
+    font = get_font(
+        font_size,
+        True,
+    )
+
+    username = (
+        username
+        or "No Username"
+    )
+
+    if len(username) > 18:
+
+        username = (
+            username[:18]
+            + "..."
+        )
+
+    # =======================================================
+    # USER ID
+    # =======================================================
+
+    user_id_x = int(
+        width * 0.590
+    )
+
+    user_id_y = int(
+        height * 0.775
+    )
+
+    draw.text(
+        (
+            user_id_x,
+            user_id_y,
+        ),
+        str(user_id),
+        font=font,
+        fill=(
+            255,
+            255,
+            255,
+            255,
+        ),
+        anchor="lm",
+    )
+
+    # =======================================================
+    # USERNAME
+    # =======================================================
+
+    username_x = int(
+        width * 0.590
+    )
+
+    username_y = int(
+        height * 0.855
+    )
+
+    draw.text(
+        (
+            username_x,
+            username_y,
+        ),
+        username,
+        font=font,
+        fill=(
+            255,
+            255,
+            255,
+            255,
+        ),
+        anchor="lm",
+    )
+
+    # =======================================================
+    # TEMP IMAGE
+    # =======================================================
+
+    image_path = os.path.join(
+        DOWNLOAD_DIR,
+        (
+            f"welcome_"
+            f"{user_id}_"
+            f"{os.getpid()}_"
+            f"{id(background)}.png"
+        ),
+    )
+
+    try:
+
+        background.convert(
+            "RGB"
+        ).save(
+            image_path,
+            "PNG",
+            optimize=True,
         )
 
     except Exception as e:
 
-        LOGGER.exception(
-            f"Welcome callback error: {e}"
+        logger.error(
+            f"Welcome image save error: {e}"
         )
 
-        try:
+        return None
 
-            await query.answer(
-                "❌ Something went wrong.",
-                show_alert=True,
-            )
-
-        except Exception:
-            pass
+    return image_path
 
 
 # ===========================================================
-# DELETE WELCOME AFTER 2 MINUTES
+# DELETE MESSAGE + IMAGE
 # ===========================================================
 
-async def delete_welcome(
+async def auto_delete(
     chat_id: int,
     message_id: int,
-    image_path: str = None,
+    image_path=None,
 ):
 
     try:
 
+        # 2 minutes
         await asyncio.sleep(
             120
         )
 
+        # Delete Telegram message
         try:
 
             await app.delete_messages(
@@ -660,60 +372,29 @@ async def delete_welcome(
                 message_id,
             )
 
-        except MessageIdInvalid:
-
+        except Exception:
             pass
 
-        except Exception as e:
-
-            LOGGER.warning(
-                f"Welcome delete error: {e}"
-            )
-
-        # ---------------------------------------------------
         # Delete generated image
-        # ---------------------------------------------------
-
-        if image_path:
+        if (
+            image_path
+            and os.path.exists(
+                image_path
+            )
+        ):
 
             try:
 
-                if os.path.exists(
+                os.remove(
                     image_path
-                ):
-
-                    os.remove(
-                        image_path
-                    )
+                )
 
             except Exception:
                 pass
 
-        # ---------------------------------------------------
-        # Remove temp message
-        # ---------------------------------------------------
-
-        try:
-
-            current_message = (
-                temp.MELCOW.get(
-                    chat_id
-                )
-            )
-
-            if current_message == message_id:
-
-                temp.MELCOW.pop(
-                    chat_id,
-                    None,
-                )
-
-        except Exception:
-            pass
-
     except Exception as e:
 
-        LOGGER.warning(
+        logger.warning(
             f"Welcome cleanup error: {e}"
         )
 
@@ -727,14 +408,16 @@ async def delete_welcome(
     group=-3,
 )
 async def welcome_new_member(
-    _,
+    client,
     update,
 ):
 
     try:
 
         # ===================================================
-        # NEW / OLD MEMBER
+        # IMPORTANT FIX
+        #
+        # old_chat_member can be None.
         # ===================================================
 
         new_member = (
@@ -748,36 +431,22 @@ async def welcome_new_member(
         if new_member is None:
             return
 
-        # ---------------------------------------------------
-        # User
-        # ---------------------------------------------------
-
         user = new_member.user
 
         if user is None:
             return
 
-        # ---------------------------------------------------
-        # Ignore bots
-        # ---------------------------------------------------
-
+        # Don't welcome bots
         if user.is_bot:
             return
 
         # ===================================================
-        # NEW STATUS
+        # STATUS CHECK
         # ===================================================
 
         new_status = (
             new_member.status
         )
-
-        # ===================================================
-        # OLD STATUS
-        #
-        # FIX:
-        # old_chat_member can be None.
-        # ===================================================
 
         if old_member is None:
 
@@ -791,31 +460,19 @@ async def welcome_new_member(
                 old_member.status
             )
 
-        # ===================================================
-        # VALID NEW MEMBER
-        # ===================================================
-
+        # User must become member/restricted
         if new_status not in (
             ChatMemberStatus.MEMBER,
             ChatMemberStatus.RESTRICTED,
         ):
-
             return
 
-        # ===================================================
-        # VALID OLD MEMBER
-        # ===================================================
-
+        # User must come from left/banned state
         if old_status not in (
             ChatMemberStatus.LEFT,
             ChatMemberStatus.BANNED,
         ):
-
             return
-
-        # ===================================================
-        # CHAT
-        # ===================================================
 
         chat = update.chat
 
@@ -825,17 +482,7 @@ async def welcome_new_member(
         chat_id = chat.id
 
         # ===================================================
-        # CHECK WELCOME
-        # ===================================================
-
-        if not await get_welcome(
-            chat_id
-        ):
-
-            return
-
-        # ===================================================
-        # GROUP INFORMATION
+        # CHAT INFORMATION
         # ===================================================
 
         try:
@@ -844,308 +491,257 @@ async def welcome_new_member(
                 chat_id
             )
 
-            group_title = (
+            group_name = (
                 full_chat.title
-                or "This Group"
+                or chat.title
+                or "Group"
             )
 
-            group_id = (
-                full_chat.id
-            )
-
-            member_count = (
+            members_count = (
                 full_chat.members_count
-                if full_chat.members_count
-                is not None
-                else "Unknown"
+                or 0
             )
 
-        except Exception as e:
+        except Exception:
 
-            LOGGER.warning(
-                f"Group info error: {e}"
-            )
-
-            group_title = (
+            group_name = (
                 chat.title
-                or "This Group"
+                or "Group"
             )
 
-            group_id = chat_id
-
-            member_count = "Unknown"
+            members_count = 0
 
         # ===================================================
-        # DELETE PREVIOUS WELCOME
+        # USERNAME
         # ===================================================
 
-        previous_message = (
-            temp.MELCOW.get(
-                chat_id
-            )
-        )
+        if user.username:
 
-        if previous_message:
-
-            try:
-
-                await app.delete_messages(
-                    chat_id,
-                    previous_message,
-                )
-
-            except Exception:
-                pass
-
-            temp.MELCOW.pop(
-                chat_id,
-                None,
-            )
-
-        # ===================================================
-        # USER INFORMATION
-        # ===================================================
-
-        first_name = (
-            user.first_name
-            or "Member"
-        )
-
-        username = (
-            user.username
-            if user.username
-            else ""
-        )
-
-        username_text = (
-            f"@{username}"
-            if username
-            else "Not Set"
-        )
-
-        # ===================================================
-        # CAPTION
-        # ===================================================
-
-        caption = (
-            f"**⏤͟͟͞͞★ ʜᴇʟʟᴏ ᴅᴇᴀʀ, "
-            f"ᴡᴇʟᴄᴏᴍᴇ ᴛᴏ : "
-            f"{group_title} ★**\n\n"
-
-            f"<u>**❖ ᴜsᴇʀ ɪɴғᴏ ❖**</u>\n\n"
-
-            f"**➻ ɴᴀᴍᴇ »** "
-            f"{user.mention}\n"
-
-            f"**➻ ᴜsᴇʀ_ɪᴅ »** "
-            f"`{user.id}`\n"
-
-            f"**➻ ᴜsᴇʀɴᴀᴍᴇ »** "
-            f"{username_text}\n\n"
-
-            f"<u>**❖ ɢʀᴏᴜᴘ ɪɴғᴏ ❖**</u>\n\n"
-
-            f"**➻ ɢʀᴏᴜᴘ_ɪᴅ »** "
-            f"`{group_id}`\n"
-
-            f"**➻ ᴍᴇᴍʙᴇʀs »** "
-            f"`{member_count}`\n\n"
-
-            f"**➻ ᴛʜᴀɴᴋs ғᴏʀ "
-            f"ᴊᴏɪɴɪɴɢ ᴜs ❤️**\n\n"
-
-            f"**❅─────✧❅✦❅✧─────❅**"
-        )
-
-        # ===================================================
-        # BOT USERNAME
-        # ===================================================
-
-        bot_username = getattr(
-            app,
-            "username",
-            None,
-        )
-
-        if bot_username:
-
-            add_me_url = (
-                f"https://t.me/"
-                f"{bot_username}"
-                f"?startgroup=true"
+            username = (
+                "@"
+                + user.username
             )
 
         else:
 
-            add_me_url = (
-                "https://t.me/"
+            username = (
+                user.first_name
+                or "User"
             )
 
         # ===================================================
-        # BUTTONS
+        # DOWNLOAD PROFILE
         # ===================================================
 
-        keyboard = InlineKeyboardMarkup(
-            [
-                [
-                    InlineKeyboardButton(
-                        "👤 ᴠɪᴇᴡ ᴍᴇᴍʙᴇʀ",
-                        user_id=user.id,
-                    )
-                ],
-                [
-                    InlineKeyboardButton(
-                        "➕ ᴀᴅᴅ ᴍᴇ ɪɴ ʏᴏᴜʀ ɢʀᴏᴜᴘ",
-                        url=add_me_url,
-                    )
-                ],
-            ]
-        )
-
-        # ===================================================
-        # DOWNLOAD PROFILE PHOTO
-        # ===================================================
-
-        image_path = None
-        welcome_image = None
+        profile_path = None
 
         if user.photo:
 
             try:
 
-                image_path = (
-                    await app.download_media(
-                        user.photo.big_file_id,
-                        file_name=os.path.join(
-                            DOWNLOAD_DIR,
-                            f"{user.id}_profile",
-                        ),
-                    )
+                profile_path = os.path.join(
+                    DOWNLOAD_DIR,
+                    (
+                        f"profile_"
+                        f"{user.id}_"
+                        f"{os.getpid()}_"
+                        f"{id(update)}.jpg"
+                    ),
+                )
+
+                await app.download_media(
+                    user.photo.big_file_id,
+                    file_name=profile_path,
                 )
 
             except Exception as e:
 
-                LOGGER.warning(
-                    f"Profile download error: {e}"
+                profile_path = None
+
+                logger.warning(
+                    f"Profile download failed: {e}"
                 )
 
         # ===================================================
         # CREATE WELCOME IMAGE
         # ===================================================
 
-        if image_path:
-
-            welcome_image = (
-                await welcomepic(
-                    user.id,
-                    first_name,
-                    username,
-                    image_path,
-                )
+        image_path = (
+            await create_welcome_image(
+                user_id=user.id,
+                username=username,
+                profile_path=profile_path,
             )
+        )
 
-        # ===================================================
-        # SEND WELCOME
-        # ===================================================
-
-        welcome_message = None
-
-        try:
-
-            if (
-                welcome_image
-                and os.path.exists(
-                    welcome_image
-                )
-            ):
-
-                welcome_message = (
-                    await app.send_photo(
-                        chat_id,
-                        photo=welcome_image,
-                        caption=caption,
-                        reply_markup=keyboard,
-                    )
-                )
-
-            else:
-
-                welcome_message = (
-                    await app.send_message(
-                        chat_id,
-                        caption,
-                        reply_markup=keyboard,
-                    )
-                )
-
-        except Exception as e:
-
-            LOGGER.warning(
-                f"Welcome image send failed: {e}"
+        # Remove downloaded profile immediately
+        if (
+            profile_path
+            and os.path.exists(
+                profile_path
             )
+        ):
 
             try:
 
-                welcome_message = (
-                    await app.send_message(
-                        chat_id,
-                        caption,
-                        reply_markup=keyboard,
-                    )
+                os.remove(
+                    profile_path
                 )
-
-            except Exception as fallback_error:
-
-                LOGGER.exception(
-                    f"Welcome fallback failed: "
-                    f"{fallback_error}"
-                )
-
-        # ===================================================
-        # DELETE DOWNLOADED PROFILE
-        # ===================================================
-
-        if image_path:
-
-            try:
-
-                if os.path.exists(
-                    image_path
-                ):
-
-                    os.remove(
-                        image_path
-                    )
 
             except Exception:
                 pass
 
         # ===================================================
-        # SAVE + AUTO DELETE
+        # WELCOME TEXT
         # ===================================================
 
-        if welcome_message:
+        welcome_text = (
+            f"👋 ʜᴇʏ {username}!\n\n"
+            f"✨ ᴡᴇʟᴄᴏᴍᴇ ᴛᴏ "
+            f"{group_name}\n"
+            f"👥 ᴍᴇᴍʙᴇʀs: "
+            f"{members_count}\n"
+            f"🆔 ɢʀᴏᴜᴘ ɪᴅ: "
+            f"`{chat_id}`"
+        )
 
-            temp.MELCOW[
-                chat_id
-            ] = welcome_message.id
+        # ===================================================
+        # BOT USERNAME
+        # ===================================================
 
-            asyncio.create_task(
-                delete_welcome(
-                    chat_id,
-                    welcome_message.id,
-                    welcome_image,
+        try:
+
+            bot_username = (
+                await app.get_me()
+            ).username
+
+        except Exception:
+
+            bot_username = None
+
+        # ===================================================
+        # BUTTONS
+        #
+        # Telegram doesn't provide an API to set the
+        # actual background color of InlineKeyboardButton.
+        # Green/blue emoji are used instead.
+        # ===================================================
+
+        buttons = [
+            [
+                InlineKeyboardButton(
+                    "🟢 ᴠɪᴇᴡ ᴍᴇᴍʙᴇʀ",
+                    user_id=user.id,
                 )
+            ]
+        ]
+
+        if bot_username:
+
+            buttons.append(
+                [
+                    InlineKeyboardButton(
+                        "🔵 ᴀᴅᴅ ᴍᴇ ɪɴ ʏᴏᴜʀ ɢʀᴏᴜᴘ",
+                        url=(
+                            "https://t.me/"
+                            f"{bot_username}"
+                            "?startgroup=true"
+                        ),
+                    )
+                ]
             )
 
-            LOGGER.info(
-                f"Welcome sent successfully "
-                f"for user {user.id} "
-                f"in chat {chat_id}"
+        reply_markup = (
+            InlineKeyboardMarkup(
+                buttons
             )
+        )
+
+        # ===================================================
+        # SEND WELCOME
+        # ===================================================
+
+        sent_message = None
+
+        if (
+            image_path
+            and os.path.exists(
+                image_path
+            )
+        ):
+
+            try:
+
+                sent_message = (
+                    await app.send_photo(
+                        chat_id=chat_id,
+                        photo=image_path,
+                        caption=welcome_text,
+                        reply_markup=reply_markup,
+                    )
+                )
+
+            except Exception as e:
+
+                logger.warning(
+                    f"Welcome photo send failed: {e}"
+                )
+
+        # ===================================================
+        # FALLBACK TEXT
+        # ===================================================
+
+        if sent_message is None:
+
+            try:
+
+                sent_message = (
+                    await app.send_message(
+                        chat_id=chat_id,
+                        text=welcome_text,
+                        reply_markup=reply_markup,
+                    )
+                )
+
+            except Exception as e:
+
+                logger.error(
+                    f"Welcome send error: {e}"
+                )
+
+                if (
+                    image_path
+                    and os.path.exists(
+                        image_path
+                    )
+                ):
+
+                    try:
+                        os.remove(
+                            image_path
+                        )
+                    except Exception:
+                        pass
+
+                return
+
+        # ===================================================
+        # AUTO DELETE
+        #
+        # Nothing is stored in MongoDB or RAM.
+        # The task only exists until it finishes.
+        # ===================================================
+
+        asyncio.create_task(
+            auto_delete(
+                chat_id=chat_id,
+                message_id=sent_message.id,
+                image_path=image_path,
+            )
+        )
 
     except Exception as e:
 
-        LOGGER.exception(
+        logger.exception(
             f"Welcome handler error: {e}"
         )
