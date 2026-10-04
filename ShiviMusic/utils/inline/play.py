@@ -5,6 +5,7 @@
 
 import math
 import random
+
 from pyrogram.types import InlineKeyboardButton
 from pyrogram.enums import ButtonStyle
 
@@ -12,7 +13,11 @@ from ShiviMusic import app
 from ShiviMusic.utils.formatters import time_to_seconds
 
 
-styles = [ButtonStyle.PRIMARY, ButtonStyle.SUCCESS, ButtonStyle.DANGER]
+styles = [
+    ButtonStyle.PRIMARY,
+    ButtonStyle.SUCCESS,
+    ButtonStyle.DANGER,
+]
 
 
 def track_markup(_, videoid, user_id, channel, fplay):
@@ -44,8 +49,8 @@ def progress_bar(played, dur):
         played_sec = time_to_seconds(played)
         duration_sec = time_to_seconds(dur)
 
-        if duration_sec == 0:
-            return "──────────"
+        if duration_sec <= 0:
+            return "━━━━━"
 
         percent = math.floor((played_sec / duration_sec) * 100)
 
@@ -53,20 +58,15 @@ def progress_bar(played, dur):
         percent = 0
 
     bars = [
-        "◉—————————",
-        "—◉————————",
-        "——◉———————",
-        "———◉——————",
-        "————◉—————",
-        "—————◉————",
-        "——————◉———",
-        "———————◉——",
-        "————————◉—",
-        "—————————◉",
+        "●━━━━━",
+        "━●━━━━",
+        "━━●━━━",
+        "━━━●━━",
+        "━━━━●━",
+        "━━━━━●",
     ]
 
-    index = min(percent // 10, 9)
-
+    index = min(max(percent // 17, 0), 5)
     return bars[index]
 
 
@@ -79,7 +79,7 @@ def admin_buttons(chat_id):
                 style=random.choice(styles),
             ),
             InlineKeyboardButton(
-                "II",
+                "Ⅱ",
                 callback_data=f"ADMIN Pause|{chat_id}",
                 style=random.choice(styles),
             ),
@@ -89,7 +89,7 @@ def admin_buttons(chat_id):
                 style=random.choice(styles),
             ),
             InlineKeyboardButton(
-                "‣‣I",
+                "‣I",
                 callback_data=f"ADMIN Skip|{chat_id}",
                 style=random.choice(styles),
             ),
@@ -101,7 +101,7 @@ def admin_buttons(chat_id):
         ],
         [
             InlineKeyboardButton(
-                "< - 𝟤𝟢ˢ",
+                "−20s",
                 callback_data="seek_backward_20",
                 style=random.choice(styles),
             ),
@@ -116,7 +116,7 @@ def admin_buttons(chat_id):
                 style=random.choice(styles),
             ),
             InlineKeyboardButton(
-                "𝟤𝟢ˢ + >",
+                "+20s",
                 callback_data="seek_forward_20",
                 style=random.choice(styles),
             ),
@@ -130,7 +130,7 @@ def stream_markup_timer(_, chat_id, played, dur):
     return [
         [
             InlineKeyboardButton(
-                f"{played} {bar} {dur}",
+                f"𝐏꯭ʟ꯭ᴀ꯭ʏ꯭ɪ꯭ɴ꯭ɢ ꯭༭꯭ {played} {bar} {dur}",
                 callback_data="GetTimer",
                 style=random.choice(styles),
             )
@@ -138,7 +138,7 @@ def stream_markup_timer(_, chat_id, played, dur):
         *admin_buttons(chat_id),
         [
             InlineKeyboardButton(
-                "✙ ʌᴅᴅ ϻє ✙",
+                "✙ 𝐀꯭ᴅ꯭ᴅ ꯭༭꯭ 𝐌꯭ᴇ ✙",
                 url=f"https://t.me/{app.username}?startgroup=true",
                 style=random.choice(styles),
             ),
@@ -156,7 +156,7 @@ def stream_markup(_, chat_id):
         *admin_buttons(chat_id),
         [
             InlineKeyboardButton(
-                "✙ ʌᴅᴅ ϻє ✙",
+                "✙ 𝐀꯭ᴅ꯭ᴅ ꯭༭꯭ 𝐌꯭ᴇ ✙",
                 url=f"https://t.me/{app.username}?startgroup=true",
                 style=random.choice(styles),
             ),
@@ -174,12 +174,18 @@ def playlist_markup(_, videoid, user_id, ptype, channel, fplay):
         [
             InlineKeyboardButton(
                 text=_["P_B_1"],
-                callback_data=f"ShiviPlaylists {videoid}|{user_id}|{ptype}|a|{channel}|{fplay}",
+                callback_data=(
+                    f"ShiviPlaylists "
+                    f"{videoid}|{user_id}|{ptype}|a|{channel}|{fplay}"
+                ),
                 style=random.choice(styles),
             ),
             InlineKeyboardButton(
                 text=_["P_B_2"],
-                callback_data=f"ShiviPlaylists {videoid}|{user_id}|{ptype}|v|{channel}|{fplay}",
+                callback_data=(
+                    f"ShiviPlaylists "
+                    f"{videoid}|{user_id}|{ptype}|v|{channel}|{fplay}"
+                ),
                 style=random.choice(styles),
             ),
         ],
@@ -198,7 +204,10 @@ def livestream_markup(_, videoid, user_id, mode, channel, fplay):
         [
             InlineKeyboardButton(
                 text=_["P_B_3"],
-                callback_data=f"LiveStream {videoid}|{user_id}|{mode}|{channel}|{fplay}",
+                callback_data=(
+                    f"LiveStream "
+                    f"{videoid}|{user_id}|{mode}|{channel}|{fplay}"
+                ),
                 style=random.choice(styles),
             )
         ],
@@ -219,19 +228,28 @@ def slider_markup(_, videoid, user_id, query, query_type, channel, fplay):
         [
             InlineKeyboardButton(
                 text=_["P_B_1"],
-                callback_data=f"MusicStream {videoid}|{user_id}|a|{channel}|{fplay}",
+                callback_data=(
+                    f"MusicStream "
+                    f"{videoid}|{user_id}|a|{channel}|{fplay}"
+                ),
                 style=random.choice(styles),
             ),
             InlineKeyboardButton(
                 text=_["P_B_2"],
-                callback_data=f"MusicStream {videoid}|{user_id}|v|{channel}|{fplay}",
+                callback_data=(
+                    f"MusicStream "
+                    f"{videoid}|{user_id}|v|{channel}|{fplay}"
+                ),
                 style=random.choice(styles),
             ),
         ],
         [
             InlineKeyboardButton(
                 "◁",
-                callback_data=f"slider B|{query_type}|{query}|{user_id}|{channel}|{fplay}",
+                callback_data=(
+                    f"slider B|{query_type}|{query}|"
+                    f"{user_id}|{channel}|{fplay}"
+                ),
                 style=random.choice(styles),
             ),
             InlineKeyboardButton(
@@ -241,9 +259,11 @@ def slider_markup(_, videoid, user_id, query, query_type, channel, fplay):
             ),
             InlineKeyboardButton(
                 "▷",
-                callback_data=f"slider F|{query_type}|{query}|{user_id}|{channel}|{fplay}",
+                callback_data=(
+                    f"slider F|{query_type}|{query}|"
+                    f"{user_id}|{channel}|{fplay}"
+                ),
                 style=random.choice(styles),
             ),
         ],
     ]
-    
