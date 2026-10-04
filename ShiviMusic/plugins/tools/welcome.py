@@ -270,7 +270,7 @@ async def greet_new_member(_, member: ChatMemberUpdated):
                 [
                     [
                         InlineKeyboardButton(
-                            "𝐀꯭ᴅ꯭ᴅ ꯭༭꯭ 𝐌꯭ᴇ ꯭༭꯭ 𝐈꯭ɴ ꯭༭꯭ 𝐘꯭ᴏ꯭ᴜ꯭ʀ ꯭༭꯭ 𝐆꯭ʀ꯭ᴏ꯭ᴜ꯭ᴘ",
+                            "𝐀꯭ᴅ꯭ᴅ ꯭𝑴𝐌꯭ᴇ ꯭ 𝐈꯭ɴ ꯭𝐘꯭ᴏ꯭ᴜ꯭ʀ  𝐆꯭ʀ꯭ᴏ꯭ᴜ꯭ᴘ",
                             url=f"https://t.me/{app.username}?startgroup=true"
                         )
                     ]
