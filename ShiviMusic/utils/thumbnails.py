@@ -8,7 +8,7 @@ from PIL import Image, ImageDraw, ImageFilter, ImageFont, ImageEnhance
 from py_yt import VideosSearch
 from config import YOUTUBE_IMG_URL
 
-FONT_TITLE = "ShiviMusic/assets/f (1).ttf"
+FONT_TITLE = "ShiviMusic/assets/f (1).ttf"bbb
 FONT_AXIOM = "ShiviMusic/assets/f (1).ttf"
 FONT_META  = "ShiviMusic/assets/cfont (1).ttf"
 FONT_TIME  = "ShiviMusic/assets/cfont (1).ttf"
